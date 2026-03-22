@@ -1,8 +1,8 @@
 # Spec: ML Kit Scan Bridge — Recepção de Eventos Nativo → WebView
 
 ## Status
-- [x] Draft
-- [ ] Approved
+- [ ] Draft
+- [X] Approved
 - [ ] Implemented
 - [ ] Tested
 
