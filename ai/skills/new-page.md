@@ -41,6 +41,19 @@ Server Component completo (`app/[rota]/page.tsx`) seguindo:
 ### Nível 3 (on request: "gera os Client Components")
 Código dos Client Components referenciados no Nível 2.
 
+## Princípios do Desenvolvedor
+
+O código gerado aplica SOLID no contexto React/Next.js:
+- **S:** A page é Server Component e orquestra layout — lógica de estado e acesso a bridge ficam em Client Components separados.
+- **O:** Comportamentos variáveis (callbacks, dados dinâmicos) são injetados via props nos Client Components, não hardcoded na page.
+- **I:** Props dos Client Components são granulares por responsabilidade — sem props bag genérico.
+- **D:** Client Components recebem callbacks (onAction, onError) via props — não instanciam bridge ou serviços diretamente.
+
+Adicionalmente:
+- Nomes de variáveis/funções/arquivos em inglês; textos visíveis ao usuário em pt-BR.
+- Sem `any` — toda tipagem explícita derivada dos contratos da spec.
+- Sem comentários óbvios — código autoexplicativo.
+
 ## Constraints
 - **Nunca** usar `next/image` sem `unoptimized` ou loader customizado.
 - **Nunca** usar `useSearchParams()`, `useRouter()`, ou APIs de navegação que requerem Suspense boundary sem avisar.

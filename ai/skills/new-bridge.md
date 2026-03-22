@@ -45,6 +45,17 @@ Código completo dos 3 arquivos:
 ### Nível 3 (on request: "documenta a estratégia de Promise")
 Explica as 3 opções de implementação para o time Android resolver o problema de Promise vs Callback (ver `specs/scanner-bridge.spec.md` Open Question #3), com exemplo de código Kotlin/Java para cada opção.
 
+## Princípios do Desenvolvedor
+
+O código gerado aplica SOLID no contexto do contrato nativo:
+- **S:** `types.ts` define apenas o contrato; `mock.ts` implementa apenas o mock; `index.ts` gerencia apenas o acesso. Um arquivo, uma responsabilidade.
+- **I:** Interface do bridge expõe apenas os métodos descritos na spec — sem métodos genéricos para "outros casos futuros".
+- **D:** Componentes dependem da abstração `getBridge()` de `index.ts`, nunca de `window.AndroidBridge` diretamente.
+
+Adicionalmente:
+- Nomes de variáveis/funções em inglês; mensagens de `console.warn` podem ser em inglês.
+- Sem `any` — toda tipagem derivada da spec.
+
 ## Constraints
 - **Nunca** implementar lógica de negócio no bridge — apenas transporte de dados.
 - **Nunca** acessar o bridge fora de Client Components (`'use client'`).

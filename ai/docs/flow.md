@@ -2,9 +2,9 @@
 
 ## Visão Geral
 
-Este projeto usa **Spec Driven Development (SDD)** com suporte de IA. A IA é um parceiro de desenvolvimento — ela não decide, ela executa dentro do processo definido.
+Este projeto usa **Spec Driven Development (SDD)** com suporte de IA. A IA atua com **personas especializadas** em cada etapa — Product Manager, Arquiteto, Desenvolvedor, Revisor e QA — para garantir qualidade em todas as fases, do requisito ao código.
 
-O agente segue o princípio de **progressive disclosure**: sempre começa com o mínimo útil e avança quando você pede. Isso força a revisão em cada etapa antes de avançar.
+O agente segue o princípio de **progressive disclosure**: sempre começa com o mínimo útil e avança quando você pede. Isso força revisão em cada etapa antes de avançar.
 
 ---
 
@@ -12,46 +12,47 @@ O agente segue o princípio de **progressive disclosure**: sempre começa com o 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  1. IDEIA: Dev descreve a feature em linguagem natural       │
-│     "Quero uma tela de confirmação após o scan"             │
+│  1. TASK: Dev cola a task do board                         │
+│     "Quero uma PRD para [task]"                            │
 └────────────────────────┬────────────────────────────────────┘
-                         │ invoca skill: new-spec
+                         │ skill: new-prd (Product Manager)
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  2. SPEC NÍVEL 1: Agente retorna esqueleto da spec          │
-│     - Apenas campos obrigatórios preenchidos                │
-│     - Seções de behavior em branco para o dev validar       │
+│  2. PRD COMPLETA: Contexto, user stories, critérios        │
+│     Dev revisa, ajusta e aprova                            │
 └────────────────────────┬────────────────────────────────────┘
-                         │ dev pede "preenche a spec"
+                         │ dev muda status → [x] Approved
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  3. SPEC NÍVEL 2: Agente retorna spec completa              │
-│     - Happy path, edge cases, open questions                │
+│  3. SPEC: "Gera spec para este PRD"                        │
+│     skill: new-spec (Arquiteto)                            │
+│     L1 → esqueleto da spec                                 │
+│     L2 → spec completa + checklist de completude inline    │
+│     L3 → plano técnico (arquivos + SOLID, sem código)      │
 └────────────────────────┬────────────────────────────────────┘
-                         │ dev revisa com: review-spec
+                         │ dev revisa checklist + aprova spec/plano
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  4. APROVAÇÃO: Dev muda status para [x] Approved             │
-│     - Apenas humanos aprovam specs                          │
-│     - Time Android aprova specs de bridge                   │
+│  4. IMPLEMENTAÇÃO L1:                                      │
+│     skill: new-page / new-component / new-bridge           │
+│     (Desenvolvedor — SOLID) — tipos + assinaturas          │
 └────────────────────────┬────────────────────────────────────┘
-                         │ spec aprovada → invoca skill de implementação
+                         │ dev pede "implementa"
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  5. IMPLEMENTAÇÃO NÍVEL 1: Agente retorna apenas estrutura  │
-│     - Arquivos a criar, tipos, assinaturas                  │
-│     - Sem código de implementação ainda                     │
+│  5. IMPLEMENTAÇÃO L2: Código completo (SOLID, sem any)     │
 └────────────────────────┬────────────────────────────────────┘
-                         │ dev pede "gera o código"
+                         │ dev pede "revisa o código"
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  6. IMPLEMENTAÇÃO NÍVEL 2: Agente retorna código completo   │
-│     - Componente / page / bridge conforme a spec            │
+│  6. CODE REVIEW: skill: review-code (Revisor Sênior)       │
+│     🔴 Bloqueadores  🟡 Melhorias  🟢 Sugestões            │
 └────────────────────────┬────────────────────────────────────┘
-                         │ dev revisa, itera, faz PR
+                         │ dev corrige, pede "QA review"
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  7. SPEC ATUALIZADA: Dev muda status para [x] Implemented   │
+│  7. QA REVIEW + PR: skill: qa-review (QA Engineer)         │
+│     ✅ Cobertos  ❌ Gaps → dev adiciona testes → PR         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -62,56 +63,99 @@ O agente segue o princípio de **progressive disclosure**: sempre começa com o 
 Para qualquer integração com o Android nativo, o fluxo tem uma etapa extra de alinhamento com o time Android:
 
 ```
-1. Dev → new-spec → spec do bridge (nível 1 + 2)
-2. Dev + Time Android → revisam spec → aprovam juntos
-3. Dev → new-bridge → types.ts gerado da spec
-4. Time Android → implementa o lado Kotlin usando types.ts como contrato
-5. Dev → implementa consumidor (componente) usando mock em dev
-6. Integração → WebView real + Android real → testa end-to-end
+1. Dev → new-prd → PRD do bridge
+2. Dev aprova PRD → new-spec → spec do bridge (L1 + L2 + L3)
+3. Dev + Time Android → revisam spec + plano → aprovam juntos
+4. Dev → new-bridge → types.ts gerado da spec
+5. Time Android → implementa o lado Kotlin usando types.ts como contrato
+6. Dev → implementa consumidor (componente) usando mock em dev
+7. Integração → WebView real + Android real → testa end-to-end
 ```
 
 ---
 
 ## Como Invocar as Skills
 
-Você pode invocar uma skill dizendo explicitamente o que quer:
+**Fluxo principal** (em negrito) — o caminho natural de uma feature:
 
-| O que dizer | Skill invocada |
-|---|---|
-| "Quero uma spec para [feature]" | `new-spec` |
-| "Revisa a spec de [arquivo]" | `review-spec` |
-| "Scaffolda a page de [rota]" | `new-page` |
-| "Cria o componente [nome]" | `new-component` |
-| "Gera o bridge de [nome]" | `new-bridge` |
+| O que dizer | Skill | Persona |
+|---|---|---|
+| **`"Quero uma PRD para [task]"`** | `new-prd` | Product Manager |
+| **`"Gera spec para este PRD"`** / `"Quero uma spec para [feature]"` | `new-spec` | Arquiteto |
+| **`"Scaffolda a page [rota]"`** | `new-page` | Desenvolvedor |
+| **`"Cria o componente [nome]"`** | `new-component` | Desenvolvedor |
+| **`"Gera o bridge de [nome]"`** | `new-bridge` | Desenvolvedor |
+| **`"Revisa o código de [arquivo]"`** | `review-code` | Revisor Sênior |
+| **`"QA review do [arquivo]"`** | `qa-review` | QA Engineer |
+
+**Skills avulsas** (uso opcional, fora do fluxo principal):
+
+| O que dizer | Skill | Quando usar |
+|---|---|---|
+| `"Revisa o PRD de [arquivo]"` | `review-prd` | Checar PRD existente isoladamente |
+| `"Revisa a spec de [arquivo]"` | `review-spec` | Checar spec existente isoladamente |
+| `"Planeja a implementação da spec"` | `new-plan` | Detalhar plano técnico separado da spec |
 
 ---
 
-## Níveis de Progressive Disclosure
+## Progressive Disclosure na Spec
 
-**Sempre que receber uma resposta de Nível 1**, você pode pedir:
-- `"nível 2"` ou `"preenche"` ou `"implementa"` → avança para Nível 2
-- `"nível 3"` ou `"edge cases"` ou `"variantes"` → avança para Nível 3
+`new-spec` cobre spec + revisão + plano em um único artefato com 3 níveis:
 
-**Por que isso importa:** A IA nunca pula etapas. Isso garante que você revisou antes de avançar — o princípio fundamental do SDD.
+```
+L1  "gera spec para este PRD"    → esqueleto (contratos + campos obrigatórios)
+L2  "preenche a spec"            → spec completa + checklist de completude inline
+L3  "plano técnico"              → arquivos a criar, padrões SOLID, ordem de implementação
+```
+
+Após L2, o checklist mostra claramente se a spec está `PRONTA PARA APROVAÇÃO` ou `PRECISA DE REVISÃO`. Você só aprova depois de ver o checklist.
+
+---
+
+## Exemplo Real: Do Board ao Código
+
+**Task:** `[BIRD-42] Tela de erro quando o scanner falha`
+
+| # | O que dizer | Skill | O que receber |
+|---|---|---|---|
+| 1 | `"Quero uma PRD para [BIRD-42]: tela de erro quando scanner falha"` | `new-prd` | PRD completa em `prds/scanner-error.prd.md` |
+| 2 | Dev revisa, ajusta critérios → muda `→ [x] Approved` | — | PRD aprovada |
+| 3 | `"Gera spec para este PRD"` | `new-spec` | Spec L1 com Purpose derivado da PRD |
+| 4 | `"preenche a spec"` | `new-spec` | Spec L2 com happy path, edge cases + checklist inline |
+| 5 | `"plano técnico"` | `new-spec` | L3: arquivos a criar, padrões SOLID aplicados |
+| 6 | Dev revisa checklist → muda `→ [x] Approved` | — | Spec + plano aprovados |
+| 7 | `"Cria o componente ScannerError"` | `new-component` | L1: tipos + assinatura |
+| 8 | `"implementa"` | `new-component` | L2: código completo (SOLID, sem any, pt-BR) |
+| 9 | `"revisa o código de ScannerError.tsx"` | `review-code` | 🔴 bloqueadores, 🟡 melhorias |
+| 10 | Dev corrige → `"QA review do ScannerError"` | `qa-review` | ✅ cobertos, ❌ gaps de cobertura |
+| 11 | Dev adiciona testes, abre PR | — | Spec → `[x] Implemented` |
+
+**Linha do tempo:**
+```
+BIRD-42 → PRD → ✅ → Spec(L1→L2→L3) → ✅ → Impl(L1→L2) → Review → QA → PR
+```
 
 ---
 
 ## Regras que a IA Nunca Quebra
 
 1. Não gera código de implementação sem spec aprovada.
-2. Não marca specs como `Approved` — só humanos fazem isso.
+2. Não marca PRD, spec ou testes como aprovados — só humanos fazem isso.
 3. Não adiciona features além do que está na spec.
 4. Não acessa `window.AndroidBridge` fora de Client Components.
 5. Não usa `next/image` sem configuração de static export.
+6. Não avança de nível sem ser solicitado.
+7. Não usa a tipagem `any`.
+8. Não avança da PRD para spec sem aprovação explícita do dev.
 
 ---
 
 ## Estrutura de Arquivos por Função
 
 ```
+prds/               ← PRDs aprovadas das tasks do board
 specs/              ← fonte da verdade para features (SDD)
 ai/
-  agent.md          ← persona e regras do agente
   skills/           ← capacidades atômicas do agente
   docs/
     flow.md         ← este arquivo
