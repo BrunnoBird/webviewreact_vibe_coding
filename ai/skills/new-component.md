@@ -51,6 +51,19 @@ Componente completo com:
 - Tratamento explícito de cada error case da spec
 - Animações ou transições (apenas se na spec)
 
+## Princípios do Desenvolvedor
+
+O código gerado aplica SOLID no contexto React/TypeScript:
+- **S:** Um componente, uma responsabilidade. Lógica de negócio ≠ lógica de UI ≠ acesso a bridge. Extrair hooks customizados quando a lógica crescer.
+- **O:** Comportamentos variáveis injetados via props (callbacks, render props) — sem condicionais hardcoded para casos específicos.
+- **I:** Props granulares e específicas — evitar `options: Record<string, unknown>` ou props que nunca são usadas juntas.
+- **D:** Componente recebe `onScan`, `onError`, `onRetry` via props — não chama `getBridge()` diretamente a não ser que a spec exija.
+
+Adicionalmente:
+- Nomes de variáveis/funções/arquivos em inglês; textos visíveis ao usuário em pt-BR.
+- Sem `any` — toda tipagem derivada dos contratos da spec.
+- Sem comentários óbvios — código autoexplicativo.
+
 ## Constraints
 - **Sempre** usar `"use client"` — componentes interativos sempre são Client Components neste projeto.
 - **Nunca** acessar `window.AndroidBridge` diretamente — sempre via `getBridge()` de `lib/native-bridge`.
