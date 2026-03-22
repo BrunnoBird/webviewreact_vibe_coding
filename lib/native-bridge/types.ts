@@ -41,3 +41,49 @@ declare global {
     AndroidBridge?: AndroidBridge;
   }
 }
+
+// --- ML Kit Scan Bridge (push pattern) ---
+// Derivado de: specs/ml-kit-scan-bridge.spec.md
+
+/** Código de erro padronizado enviado pelo Android após falha no scan. */
+export type ScanErrorCode =
+  | "CAMERA_DENIED"
+  | "NO_BARCODE_FOUND"
+  | "TIMEOUT"
+  | "CANCELLED"
+  | "UNKNOWN_ERROR";
+
+/** Payload enviado pelo Android em caso de scan bem-sucedido. */
+export interface ScanSuccessPayload {
+  status: "success";
+  /** Linha digitável do boleto ou chave Pix decodificada. */
+  value: string;
+  /** Tipo inferido pelo nativo ou pelo web. */
+  type: ScanResultType;
+  /** Formato raw retornado pelo ML Kit (ex: "CODE_128", "QR_CODE"). */
+  rawFormat?: string;
+}
+
+/** Payload enviado pelo Android em caso de falha ou cancelamento. */
+export interface ScanErrorPayload {
+  status: "error";
+  code: ScanErrorCode;
+  /** Mensagem humana opcional para log/debug. */
+  message?: string;
+}
+
+/** Union discriminada — único tipo que atravessa o bridge de push. */
+export type ScanEventPayload = ScanSuccessPayload | ScanErrorPayload;
+
+/** Namespace global registrado pela WebView para receber eventos do nativo. */
+export interface VibeBirdGlobal {
+  onScanResult(payload: ScanEventPayload): void;
+}
+
+declare global {
+  interface Window {
+    VibeBird?: VibeBirdGlobal;
+    /** Fila de eventos recebidos antes do React montar. Drenada por registerScanListener. */
+    _vibeBirdQueue?: ScanEventPayload[];
+  }
+}
